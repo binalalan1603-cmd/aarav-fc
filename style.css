@@ -1,0 +1,131 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    overflow: hidden;
+    background: #000;
+    font-family: Arial, sans-serif;
+}
+
+
+/* Game Canvas */
+
+#gameCanvas {
+    width: 100vw;
+    height: 100vh;
+    display: block;
+}
+
+
+/* Loading Screen */
+
+#loadingScreen {
+
+    position: fixed;
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    background: linear-gradient(
+        135deg,
+        #0b6623,
+        #001f3f
+    );
+
+    color: white;
+
+    z-index: 10;
+
+}
+
+
+#loadingScreen h1 {
+
+    font-size: 48px;
+    margin-bottom: 20px;
+
+}
+
+
+#loadingScreen p {
+
+    font-size: 20px;
+
+}
+
+
+/* Match HUD */
+
+#hud {
+
+    position: fixed;
+
+    top: 20px;
+    left: 50%;
+
+    transform: translateX(-50%);
+
+    color: white;
+
+    text-align: center;
+
+    z-index: 5;
+
+}
+
+
+#scoreboard {
+
+    background: rgba(0,0,0,0.65);
+
+    padding: 12px 30px;
+
+    border-radius: 12px;
+
+    font-size: 32px;
+
+    font-weight: bold;
+
+}
+
+
+#matchTime {
+
+    margin-top: 10px;
+
+    background: rgba(0,0,0,0.55);
+
+    padding: 8px 20px;
+
+    border-radius: 10px;
+
+    font-size: 22px;
+
+}
+
+
+/* Mobile support */
+
+@media(max-width:600px){
+
+    #scoreboard {
+
+        font-size: 22px;
+
+    }
+
+
+    #matchTime {
+
+        font-size:18px;
+
+    }
+
+}
