@@ -1,7 +1,7 @@
 import * as THREE from 
 "https://cdn.jsdelivr.net/npm/three@0.165/build/three.module.js";
 
-import { createStadium } from "./game/stadium.js";
+import { createStadium } from "./stadium.js";
 import { Ball } from "./ball.js";
 import { Team } from "./team.js";
 import { AI } from "./ai.js";
