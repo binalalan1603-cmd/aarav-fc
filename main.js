@@ -1,13 +1,18 @@
 import * as THREE from 
 "https://cdn.jsdelivr.net/npm/three@0.165/build/three.module.js";
 
+
 import { createStadium } from "./game/stadium.js";
 import { Ball } from "./game/ball.js";
 import { Team } from "./game/team.js";
 import { AI } from "./game/ai.js";
+import { BallController } from "./game/ballController.js";
 
 
+
+// =====================
 // SCENE
+// =====================
 
 const scene = new THREE.Scene();
 
@@ -16,7 +21,9 @@ new THREE.Color(0x87ceeb);
 
 
 
+// =====================
 // CAMERA
+// =====================
 
 const camera =
 new THREE.PerspectiveCamera(
@@ -34,18 +41,16 @@ camera.position.set(
 
 
 
+// =====================
 // RENDERER
-
-const canvas =
-document.getElementById(
-"gameCanvas"
-);
-
+// =====================
 
 const renderer =
 new THREE.WebGLRenderer({
 
-canvas,
+canvas:
+document.getElementById("gameCanvas"),
+
 antialias:true
 
 });
@@ -61,7 +66,9 @@ renderer.shadowMap.enabled=true;
 
 
 
-// LIGHT
+// =====================
+// LIGHTS
+// =====================
 
 const light =
 new THREE.DirectionalLight(
@@ -77,6 +84,9 @@ light.position.set(
 );
 
 
+light.castShadow=true;
+
+
 scene.add(light);
 
 
@@ -84,25 +94,34 @@ scene.add(
 new THREE.AmbientLight(
 0xffffff,
 0.5
-)
-);
+));
 
 
 
+// =====================
 // STADIUM
+// =====================
 
 createStadium(scene);
 
 
 
+// =====================
 // BALL
+// =====================
 
 const ball =
 new Ball(scene);
 
 
+const ballController =
+new BallController(ball);
 
+
+
+// =====================
 // TEAMS
+// =====================
 
 const blueTeam =
 new Team(
@@ -137,28 +156,25 @@ player.mesh.position.x *= -1;
 
 
 
-// SAVE HOME POSITIONS
+// Store home positions
 
-blueTeam.players.forEach(
-p=>{
+[
+...blueTeam.players,
+...redTeam.players
 
-p.home =
-p.mesh.position.clone();
+].forEach(
+player=>{
 
-});
-
-
-redTeam.players.forEach(
-p=>{
-
-p.home =
-p.mesh.position.clone();
+player.home =
+player.mesh.position.clone();
 
 });
 
 
 
+// =====================
 // AI
+// =====================
 
 const blueAI =
 new AI(
@@ -175,16 +191,21 @@ ball
 
 
 
-// CONTROL PLAYER
+// =====================
+// CONTROLLED PLAYER
+// =====================
 
 const controlledPlayer =
 blueTeam.players[10];
 
 
 
-// CONTROLS
+// =====================
+// INPUT
+// =====================
 
 const keys={};
+
 
 
 window.addEventListener(
@@ -194,6 +215,7 @@ e=>{
 keys[e.key.toLowerCase()]=true;
 
 });
+
 
 
 window.addEventListener(
@@ -206,12 +228,16 @@ keys[e.key.toLowerCase()]=false;
 
 
 
-// PLAYER CONTROL
+// =====================
+// MOVEMENT
+// =====================
 
 function controlPlayer(){
 
+
 let direction =
 new THREE.Vector3();
+
 
 
 if(keys["w"])
@@ -235,6 +261,7 @@ if(direction.length()>0){
 
 direction.normalize();
 
+
 controlledPlayer.move(
 direction
 );
@@ -242,6 +269,8 @@ direction
 }
 
 
+
+// Camera
 
 camera.position.x =
 controlledPlayer.mesh.position.x;
@@ -260,7 +289,56 @@ controlledPlayer.mesh.position
 
 
 
+// =====================
+// ACTIONS
+// =====================
+
+function actions(){
+
+
+
+// Pass
+
+if(keys["e"]){
+
+let teammate =
+blueTeam.players[7];
+
+
+ballController.pass(
+teammate
+);
+
+
+keys["e"]=false;
+
+}
+
+
+
+// Shoot
+
+if(keys[" "]){
+
+
+ballController.shoot(
+50
+);
+
+
+keys[" "]=false;
+
+}
+
+
+
+}
+
+
+
+// =====================
 // GAME LOOP
+// =====================
 
 function animate(){
 
@@ -274,14 +352,32 @@ animate
 controlPlayer();
 
 
+actions();
+
+
+
 blueAI.update();
 
 redAI.update();
 
 
+
 blueTeam.update();
 
 redTeam.update();
+
+
+
+ballController.update(
+
+[
+...blueTeam.players,
+...redTeam.players
+
+]
+
+);
+
 
 
 ball.update();
@@ -301,7 +397,9 @@ animate();
 
 
 
+// =====================
 // RESIZE
+// =====================
 
 window.addEventListener(
 "resize",
@@ -326,7 +424,9 @@ window.innerHeight
 
 
 
-// LOADING SCREEN
+// =====================
+// LOADING
+// =====================
 
 setTimeout(()=>{
 
