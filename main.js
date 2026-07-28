@@ -1,6 +1,9 @@
 import * as THREE from 
 "https://cdn.jsdelivr.net/npm/three@0.165/build/three.module.js";
 
+import { createStadium } from "./game/stadium.js";
+import { Ball } from "./game/ball.js";
+
 
 // --------------------
 // Scene
@@ -23,46 +26,56 @@ const camera = new THREE.PerspectiveCamera(
 );
 
 camera.position.set(0,25,35);
-camera.lookAt(0,0,0);
 
 
 // --------------------
 // Renderer
 // --------------------
 
-const canvas = document.getElementById("gameCanvas");
+const canvas =
+document.getElementById("gameCanvas");
 
-const renderer = new THREE.WebGLRenderer({
-    canvas,
+
+const renderer =
+new THREE.WebGLRenderer({
+
+    canvas:canvas,
     antialias:true
+
 });
+
 
 renderer.setSize(
     window.innerWidth,
     window.innerHeight
 );
 
-renderer.shadowMap.enabled = true;
+
+renderer.shadowMap.enabled=true;
 
 
 // --------------------
-// Lights
+// Lighting
 // --------------------
 
-const sunlight = new THREE.DirectionalLight(
+const light =
+new THREE.DirectionalLight(
     0xffffff,
     2
 );
 
-sunlight.position.set(
+
+light.position.set(
     20,
     40,
     20
 );
 
-sunlight.castShadow = true;
 
-scene.add(sunlight);
+light.castShadow=true;
+
+
+scene.add(light);
 
 
 scene.add(
@@ -73,104 +86,32 @@ scene.add(
 );
 
 
-// --------------------
-// Football Pitch
-// --------------------
-
-const pitch = new THREE.Mesh(
-
-    new THREE.PlaneGeometry(
-        100,
-        65
-    ),
-
-    new THREE.MeshStandardMaterial({
-
-        color:0x269b45
-
-    })
-
-);
-
-
-pitch.rotation.x = -Math.PI/2;
-
-pitch.receiveShadow = true;
-
-scene.add(pitch);
-
 
 // --------------------
-// Centre Circle
+// Stadium
 // --------------------
 
-const circle = new THREE.Mesh(
+createStadium(scene);
 
-    new THREE.RingGeometry(
-        8,
-        8.2,
-        64
-    ),
-
-    new THREE.MeshBasicMaterial({
-
-        color:0xffffff
-
-    })
-
-);
-
-
-circle.rotation.x=-Math.PI/2;
-
-circle.position.y=0.02;
-
-scene.add(circle);
-
-
-// --------------------
-// Ball
-// --------------------
-
-const ball = new THREE.Mesh(
-
-    new THREE.SphereGeometry(
-        0.7,
-        32,
-        32
-    ),
-
-    new THREE.MeshStandardMaterial({
-
-        color:0xffffff
-
-    })
-
-);
-
-
-ball.position.y=0.7;
-
-ball.castShadow=true;
-
-scene.add(ball);
 
 
 // --------------------
 // Player
 // --------------------
 
-const player = new THREE.Mesh(
+const player =
+new THREE.Mesh(
 
-    new THREE.BoxGeometry(
-        1,
-        3,
-        1
+    new THREE.CapsuleGeometry(
+        0.45,
+        1.2,
+        6,
+        12
     ),
 
     new THREE.MeshStandardMaterial({
 
-        color:0x0066ff
+        color:0x0055ff
 
     })
 
@@ -179,13 +120,25 @@ const player = new THREE.Mesh(
 
 player.position.set(
     -15,
-    1.5,
+    1,
     0
 );
 
+
 player.castShadow=true;
 
+
 scene.add(player);
+
+
+
+// --------------------
+// Ball
+// --------------------
+
+const ball =
+new Ball(scene);
+
 
 
 // --------------------
@@ -196,48 +149,52 @@ const keys={};
 
 
 window.addEventListener(
-    "keydown",
-    e=>{
-        keys[e.key.toLowerCase()]=true;
-    }
-);
+"keydown",
+(e)=>{
+
+keys[e.key.toLowerCase()]=true;
+
+});
 
 
 window.addEventListener(
-    "keyup",
-    e=>{
-        keys[e.key.toLowerCase()]=false;
-    }
-);
+"keyup",
+(e)=>{
+
+keys[e.key.toLowerCase()]=false;
+
+});
 
 
 
-function controls(){
+function updatePlayer(){
+
+    let speed=0.25;
+
 
     if(keys["w"])
-        player.position.z-=0.2;
+        player.position.z-=speed;
 
 
     if(keys["s"])
-        player.position.z+=0.2;
+        player.position.z+=speed;
 
 
     if(keys["a"])
-        player.position.x-=0.2;
+        player.position.x-=speed;
 
 
     if(keys["d"])
-        player.position.x+=0.2;
+        player.position.x+=speed;
 
 
-
-    // Camera follow
 
     camera.position.x =
-        player.position.x;
+    player.position.x;
+
 
     camera.position.z =
-        player.position.z+25;
+    player.position.z+25;
 
 
     camera.lookAt(
@@ -248,18 +205,23 @@ function controls(){
 
 
 
+
 // --------------------
-// Animation Loop
+// Game Loop
 // --------------------
 
 function animate(){
+
 
     requestAnimationFrame(
         animate
     );
 
 
-    controls();
+    updatePlayer();
+
+
+    ball.update();
 
 
     renderer.render(
@@ -273,37 +235,49 @@ function animate(){
 animate();
 
 
+
+
 // --------------------
 // Resize
 // --------------------
 
 window.addEventListener(
-    "resize",
-    ()=>{
-
-        camera.aspect =
-        window.innerWidth /
-        window.innerHeight;
+"resize",
+()=>{
 
 
-        camera.updateProjectionMatrix();
+camera.aspect =
+window.innerWidth /
+window.innerHeight;
 
 
-        renderer.setSize(
-            window.innerWidth,
-            window.innerHeight
-        );
+camera.updateProjectionMatrix();
 
-    }
+
+renderer.setSize(
+window.innerWidth,
+window.innerHeight
 );
 
 
-// Remove loading screen
+});
+
+
+
+// --------------------
+// Loading Screen
+// --------------------
 
 setTimeout(()=>{
 
-    document.getElementById(
-        "loadingScreen"
-    ).style.display="none";
+const load =
+document.getElementById(
+"loadingScreen"
+);
+
+
+if(load)
+load.style.display="none";
+
 
 },1500);
