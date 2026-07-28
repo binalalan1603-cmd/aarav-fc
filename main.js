@@ -4,7 +4,7 @@ import * as THREE from
 
 import { createStadium } from "./game/stadium.js";
 import { Ball } from "./game/ball.js";
-import { Player } from "./game/player.js";
+import { Team } from "./game/team.js";
 
 
 // =====================
@@ -13,21 +13,24 @@ import { Player } from "./game/player.js";
 
 const scene = new THREE.Scene();
 
-scene.background = new THREE.Color(
-    0x87ceeb
-);
+scene.background =
+new THREE.Color(0x87ceeb);
+
 
 
 // =====================
 // CAMERA
 // =====================
 
-const camera = new THREE.PerspectiveCamera(
+const camera =
+new THREE.PerspectiveCamera(
     60,
-    window.innerWidth / window.innerHeight,
+    window.innerWidth /
+    window.innerHeight,
     0.1,
     1000
 );
+
 
 camera.position.set(
     0,
@@ -36,18 +39,21 @@ camera.position.set(
 );
 
 
+
 // =====================
 // RENDERER
 // =====================
 
 const canvas =
-document.getElementById("gameCanvas");
+document.getElementById(
+    "gameCanvas"
+);
 
 
 const renderer =
 new THREE.WebGLRenderer({
 
-    canvas: canvas,
+    canvas,
     antialias:true
 
 });
@@ -64,36 +70,34 @@ renderer.shadowMap.enabled=true;
 
 
 // =====================
-// LIGHTS
+// LIGHT
 // =====================
 
-const sun =
+const light =
 new THREE.DirectionalLight(
     0xffffff,
     2
 );
 
 
-sun.position.set(
+light.position.set(
     20,
     40,
     20
 );
 
 
-sun.castShadow=true;
+light.castShadow=true;
 
 
-scene.add(sun);
-
+scene.add(light);
 
 
 scene.add(
-    new THREE.AmbientLight(
-        0xffffff,
-        0.5
-    )
-);
+new THREE.AmbientLight(
+    0xffffff,
+    0.5
+));
 
 
 
@@ -115,27 +119,56 @@ new Ball(scene);
 
 
 // =====================
-// PLAYER
+// TEAMS
 // =====================
 
-const player =
-new Player(
+
+const blueTeam =
+new Team(
     scene,
-    "Captain",
+    "Blue FC",
     0x0055ff
 );
 
 
-player.setPosition(
-    -15,
-    1,
-    0
+blueTeam.createFormation();
+
+
+
+const redTeam =
+new Team(
+    scene,
+    "Red FC",
+    0xff2222
 );
 
 
 
+// Put red team opposite side
+
+redTeam.createFormation();
+
+
+redTeam.players.forEach(
+player=>{
+
+    player.mesh.position.x *= -1;
+
+});
+
+
+
 // =====================
-// CONTROLS
+// USER CONTROL PLAYER
+// =====================
+
+const controlledPlayer =
+blueTeam.players[10];
+
+
+
+// =====================
+// KEYBOARD
 // =====================
 
 const keys={};
@@ -143,80 +176,77 @@ const keys={};
 
 window.addEventListener(
 "keydown",
-(event)=>{
+e=>{
 
-keys[
-event.key.toLowerCase()
-]=true;
+keys[e.key.toLowerCase()]=true;
 
 });
 
 
 window.addEventListener(
 "keyup",
-(event)=>{
+e=>{
 
-keys[
-event.key.toLowerCase()
-]=false;
+keys[e.key.toLowerCase()]=false;
 
 });
 
 
 
+
 // =====================
-// PLAYER MOVEMENT
+// MOVEMENT
 // =====================
 
-function updatePlayer(){
+function controlPlayer(){
 
 
-    let direction =
-    new THREE.Vector3();
-
-
-    if(keys["w"])
-        direction.z-=1;
-
-
-    if(keys["s"])
-        direction.z+=1;
-
-
-    if(keys["a"])
-        direction.x-=1;
-
-
-    if(keys["d"])
-        direction.x+=1;
+let direction =
+new THREE.Vector3();
 
 
 
-    if(direction.length()>0){
-
-        direction.normalize();
-
-        player.move(
-            direction
-        );
-
-    }
+if(keys["w"])
+direction.z-=1;
 
 
-
-    // Camera follows player
-
-    camera.position.x =
-    player.mesh.position.x;
+if(keys["s"])
+direction.z+=1;
 
 
-    camera.position.z =
-    player.mesh.position.z+25;
+if(keys["a"])
+direction.x-=1;
 
 
-    camera.lookAt(
-        player.mesh.position
-    );
+if(keys["d"])
+direction.x+=1;
+
+
+
+if(direction.length()>0){
+
+direction.normalize();
+
+
+controlledPlayer.move(
+direction
+);
+
+}
+
+
+
+camera.position.x =
+controlledPlayer.mesh.position.x;
+
+
+camera.position.z =
+controlledPlayer.mesh.position.z+25;
+
+
+camera.lookAt(
+controlledPlayer.mesh.position
+);
 
 
 }
@@ -231,30 +261,35 @@ function updatePlayer(){
 function animate(){
 
 
-    requestAnimationFrame(
-        animate
-    );
+requestAnimationFrame(
+animate
+);
 
 
-    updatePlayer();
+
+controlPlayer();
 
 
-    player.update();
+
+blueTeam.update();
+
+redTeam.update();
 
 
-    ball.update();
+ball.update();
 
 
-    renderer.render(
-        scene,
-        camera
-    );
+
+renderer.render(
+scene,
+camera
+);
+
 
 }
 
 
 animate();
-
 
 
 
@@ -275,6 +310,7 @@ window.innerHeight;
 camera.updateProjectionMatrix();
 
 
+
 renderer.setSize(
 window.innerWidth,
 window.innerHeight
@@ -286,7 +322,7 @@ window.innerHeight
 
 
 // =====================
-// LOADING SCREEN
+// LOADING
 // =====================
 
 setTimeout(()=>{
@@ -298,11 +334,8 @@ document.getElementById(
 );
 
 
-if(loading){
-
+if(loading)
 loading.style.display="none";
-
-}
 
 
 },1500);
