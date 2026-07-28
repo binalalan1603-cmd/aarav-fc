@@ -1,22 +1,26 @@
 import * as THREE from 
 "https://cdn.jsdelivr.net/npm/three@0.165/build/three.module.js";
 
+
 import { createStadium } from "./game/stadium.js";
 import { Ball } from "./game/ball.js";
+import { Player } from "./game/player.js";
 
 
-// --------------------
-// Scene
-// --------------------
+// =====================
+// SCENE
+// =====================
 
 const scene = new THREE.Scene();
 
-scene.background = new THREE.Color(0x87ceeb);
+scene.background = new THREE.Color(
+    0x87ceeb
+);
 
 
-// --------------------
-// Camera
-// --------------------
+// =====================
+// CAMERA
+// =====================
 
 const camera = new THREE.PerspectiveCamera(
     60,
@@ -25,12 +29,16 @@ const camera = new THREE.PerspectiveCamera(
     1000
 );
 
-camera.position.set(0,25,35);
+camera.position.set(
+    0,
+    25,
+    35
+);
 
 
-// --------------------
-// Renderer
-// --------------------
+// =====================
+// RENDERER
+// =====================
 
 const canvas =
 document.getElementById("gameCanvas");
@@ -39,7 +47,7 @@ document.getElementById("gameCanvas");
 const renderer =
 new THREE.WebGLRenderer({
 
-    canvas:canvas,
+    canvas: canvas,
     antialias:true
 
 });
@@ -54,28 +62,30 @@ renderer.setSize(
 renderer.shadowMap.enabled=true;
 
 
-// --------------------
-// Lighting
-// --------------------
 
-const light =
+// =====================
+// LIGHTS
+// =====================
+
+const sun =
 new THREE.DirectionalLight(
     0xffffff,
     2
 );
 
 
-light.position.set(
+sun.position.set(
     20,
     40,
     20
 );
 
 
-light.castShadow=true;
+sun.castShadow=true;
 
 
-scene.add(light);
+scene.add(sun);
+
 
 
 scene.add(
@@ -87,128 +97,136 @@ scene.add(
 
 
 
-// --------------------
-// Stadium
-// --------------------
+// =====================
+// STADIUM
+// =====================
 
 createStadium(scene);
 
 
 
-// --------------------
-// Player
-// --------------------
-
-const player =
-new THREE.Mesh(
-
-    new THREE.CapsuleGeometry(
-        0.45,
-        1.2,
-        6,
-        12
-    ),
-
-    new THREE.MeshStandardMaterial({
-
-        color:0x0055ff
-
-    })
-
-);
-
-
-player.position.set(
-    -15,
-    1,
-    0
-);
-
-
-player.castShadow=true;
-
-
-scene.add(player);
-
-
-
-// --------------------
-// Ball
-// --------------------
+// =====================
+// BALL
+// =====================
 
 const ball =
 new Ball(scene);
 
 
 
-// --------------------
-// Controls
-// --------------------
+// =====================
+// PLAYER
+// =====================
+
+const player =
+new Player(
+    scene,
+    "Captain",
+    0x0055ff
+);
+
+
+player.setPosition(
+    -15,
+    1,
+    0
+);
+
+
+
+// =====================
+// CONTROLS
+// =====================
 
 const keys={};
 
 
 window.addEventListener(
 "keydown",
-(e)=>{
+(event)=>{
 
-keys[e.key.toLowerCase()]=true;
+keys[
+event.key.toLowerCase()
+]=true;
 
 });
 
 
 window.addEventListener(
 "keyup",
-(e)=>{
+(event)=>{
 
-keys[e.key.toLowerCase()]=false;
+keys[
+event.key.toLowerCase()
+]=false;
 
 });
 
 
 
+// =====================
+// PLAYER MOVEMENT
+// =====================
+
 function updatePlayer(){
 
-    let speed=0.25;
+
+    let direction =
+    new THREE.Vector3();
 
 
     if(keys["w"])
-        player.position.z-=speed;
+        direction.z-=1;
 
 
     if(keys["s"])
-        player.position.z+=speed;
+        direction.z+=1;
 
 
     if(keys["a"])
-        player.position.x-=speed;
+        direction.x-=1;
 
 
     if(keys["d"])
-        player.position.x+=speed;
+        direction.x+=1;
 
 
+
+    if(direction.length()>0){
+
+        direction.normalize();
+
+        player.move(
+            direction
+        );
+
+    }
+
+
+
+    // Camera follows player
 
     camera.position.x =
-    player.position.x;
+    player.mesh.position.x;
 
 
     camera.position.z =
-    player.position.z+25;
+    player.mesh.position.z+25;
 
 
     camera.lookAt(
-        player.position
+        player.mesh.position
     );
+
 
 }
 
 
 
 
-// --------------------
-// Game Loop
-// --------------------
+// =====================
+// GAME LOOP
+// =====================
 
 function animate(){
 
@@ -219,6 +237,9 @@ function animate(){
 
 
     updatePlayer();
+
+
+    player.update();
 
 
     ball.update();
@@ -237,9 +258,9 @@ animate();
 
 
 
-// --------------------
-// Resize
-// --------------------
+// =====================
+// RESIZE
+// =====================
 
 window.addEventListener(
 "resize",
@@ -264,20 +285,24 @@ window.innerHeight
 
 
 
-// --------------------
-// Loading Screen
-// --------------------
+// =====================
+// LOADING SCREEN
+// =====================
 
 setTimeout(()=>{
 
-const load =
+
+const loading =
 document.getElementById(
 "loadingScreen"
 );
 
 
-if(load)
-load.style.display="none";
+if(loading){
+
+loading.style.display="none";
+
+}
 
 
 },1500);
