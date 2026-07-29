@@ -159,6 +159,23 @@ function animate() {
     input.update(
         controlledPlayer
     );
+    // Switch player
+
+if (input.switchPressed()) {
+
+    controlledPlayer.isControlled = false;
+
+    controlledIndex++;
+
+    if (controlledIndex >= blueTeam.players.length)
+        controlledIndex = 0;
+
+    controlledPlayer =
+        blueTeam.players[controlledIndex];
+
+    controlledPlayer.isControlled = true;
+
+}
 // PASS
 
 if (input.passPressed() && ball.owner === controlledPlayer) {
