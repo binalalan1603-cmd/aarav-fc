@@ -1,94 +1,172 @@
-import * as THREE from 
-"https://cdn.jsdelivr.net/npm/three@0.165/build/three.module.js";
-
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.165/build/three.module.js";
 
 export class Player {
 
+    constructor(scene, name = "Player", color = 0x0066ff) {
 
-    constructor(
-        scene,
-        name="Player",
-        color=0x0055ff
-    ){
+        this.scene = scene;
+        this.name = name;
 
+        this.radius = 0.45;
+        this.height = 1.8;
 
-        this.name=name;
+        this.speed = 0.14;
+        this.sprintSpeed = 0.22;
+        this.currentSpeed = this.speed;
 
+        this.stamina = 100;
+        this.maxStamina = 100;
 
-        // Create player body
+        this.hasBall = false;
+        this.team = null;
+        this.number = 0;
 
-        this.mesh = new THREE.Mesh(
+        this.home = new THREE.Vector3();
 
-            new THREE.CapsuleGeometry(
-                0.45,
-                1.2,
-                6,
-                12
-            ),
+        this.velocity = new THREE.Vector3();
 
+        this.direction = new THREE.Vector3();
+
+        this.mesh = new THREE.Group();
+
+        // Body
+
+        const body = new THREE.Mesh(
+            new THREE.CapsuleGeometry(0.45, 1.0, 8, 16),
             new THREE.MeshStandardMaterial({
-
-                color:color
-
+                color: color,
+                roughness: 0.7,
+                metalness: 0.1
             })
-
         );
 
+        body.castShadow = true;
 
-        this.mesh.castShadow=true;
+        this.mesh.add(body);
 
+        // Head
 
-        this.speed=0.15;
+        const head = new THREE.Mesh(
+            new THREE.SphereGeometry(0.28, 24, 24),
+            new THREE.MeshStandardMaterial({
+                color: 0xffd2b1
+            })
+        );
 
+        head.position.y = 1.05;
 
-        this.stamina=100;
+        head.castShadow = true;
 
-
-        this.position=
-        this.mesh.position;
-
+        this.mesh.add(head);
 
         scene.add(this.mesh);
+    }
+
+    setPosition(x, y, z) {
+
+        this.mesh.position.set(x, y, z);
+
+        this.home.set(x, y, z);
 
     }
 
+    move(direction) {
 
+        if (direction.lengthSq() === 0) return;
 
-    move(direction){
+        direction.normalize();
 
+        this.direction.copy(direction);
 
-        this.mesh.position.x +=
-        direction.x*this.speed;
+        this.mesh.position.x += direction.x * this.currentSpeed;
+        this.mesh.position.z += direction.z * this.currentSpeed;
 
+        // Rotate player toward movement
 
-        this.mesh.position.z +=
-        direction.z*this.speed;
+        const angle = Math.atan2(direction.x, direction.z);
 
+        this.mesh.rotation.y = angle;
+
+        this.keepInsidePitch();
 
     }
 
+    sprint(enabled) {
 
+        if (enabled && this.stamina > 0) {
 
-    setPosition(x,y,z){
+            this.currentSpeed = this.sprintSpeed;
 
-        this.mesh.position.set(
-            x,
-            y,
-            z
+            this.stamina -= 0.3;
+
+        } else {
+
+            this.currentSpeed = this.speed;
+
+            this.stamina += 0.15;
+
+        }
+
+        this.stamina = THREE.MathUtils.clamp(
+            this.stamina,
+            0,
+            this.maxStamina
         );
 
     }
 
+    keepInsidePitch() {
 
+        this.mesh.position.x =
+            THREE.MathUtils.clamp(
+                this.mesh.position.x,
+                -49,
+                49
+            );
 
-    update(){
-
-        // Future:
-        // stamina
-        // animations
-        // AI movement
+        this.mesh.position.z =
+            THREE.MathUtils.clamp(
+                this.mesh.position.z,
+                -30,
+                30
+            );
 
     }
 
+    distanceTo(object) {
+
+        return this.mesh.position.distanceTo(
+            object.mesh.position
+        );
+
+    }
+
+    lookAt(target) {
+
+        this.mesh.lookAt(
+            target.x,
+            this.mesh.position.y,
+            target.z
+        );
+
+    }
+
+    update(delta = 1) {
+
+        this.keepInsidePitch();
+
+        if (this.currentSpeed === this.speed) {
+
+            this.stamina += 0.08 * delta;
+
+        }
+
+        this.stamina = THREE.MathUtils.clamp(
+            this.stamina,
+            0,
+            this.maxStamina
+        );
+
+    }
 
 }
