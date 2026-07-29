@@ -98,10 +98,7 @@ const redAI =
 // Controlled Player
 // ==========================
 
-let controlledPlayer =
-    blueTeam.players[10];
 
-controlledPlayer.isControlled = true;
 
 // ==========================
 // Camera Controller
