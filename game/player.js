@@ -69,7 +69,36 @@ export class Player {
         this.home.set(x, y, z);
 
     }
+separate(other){
 
+    const distance =
+        this.mesh.position.distanceTo(
+            other.mesh.position
+        );
+
+    if(distance<0.9){
+
+        const push =
+            new THREE.Vector3()
+
+        push.subVectors(
+            this.mesh.position,
+            other.mesh.position
+        )
+
+        push.normalize()
+
+        push.multiplyScalar(
+            (0.9-distance)/2
+        )
+
+        this.mesh.position.add(push)
+
+        other.mesh.position.sub(push)
+
+    }
+
+}
     move(direction) {
 
         if (direction.lengthSq() === 0) return;
