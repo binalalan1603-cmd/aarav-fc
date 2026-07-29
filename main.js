@@ -5,17 +5,21 @@ import { Ball } from "./game/ball.js";
 import { Team } from "./game/team.js";
 import { AI } from "./game/ai.js";
 import { BallController } from "./game/ballController.js";
+import { GameCamera } from "./game/camera.js";
+import { InputManager } from "./game/input.js";
+import { Match } from "./game/match.js";
+import { Scoreboard } from "./game/scoreboard.js";
 
-// ====================
+// ==========================
 // Scene
-// ====================
+// ==========================
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87ceeb);
 
-// ====================
+// ==========================
 // Camera
-// ====================
+// ==========================
 
 const camera = new THREE.PerspectiveCamera(
     60,
@@ -24,11 +28,11 @@ const camera = new THREE.PerspectiveCamera(
     1000
 );
 
-camera.position.set(0, 25, 35);
+camera.position.set(0, 25, 30);
 
-// ====================
+// ==========================
 // Renderer
-// ====================
+// ==========================
 
 const renderer = new THREE.WebGLRenderer({
     canvas: document.getElementById("gameCanvas"),
@@ -38,142 +42,126 @@ const renderer = new THREE.WebGLRenderer({
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;
 
-// ====================
+// ==========================
 // Lights
-// ====================
+// ==========================
 
 const sun = new THREE.DirectionalLight(0xffffff, 2);
 
-sun.position.set(20, 40, 20);
+sun.position.set(40, 60, 20);
 sun.castShadow = true;
 
 scene.add(sun);
 
-scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+scene.add(new THREE.AmbientLight(0xffffff, 0.6));
 
-// ====================
+// ==========================
 // Stadium
-// ====================
+// ==========================
 
 createStadium(scene);
 
-// ====================
+// ==========================
 // Ball
-// ====================
+// ==========================
 
 const ball = new Ball(scene);
-const ballController = new BallController(ball);
 
-// ====================
+const ballController =
+    new BallController(ball);
+
+// ==========================
 // Teams
-// ====================
+// ==========================
 
-const blueTeam = new Team(scene, "Blue FC", 0x0066ff);
-blueTeam.createFormation();
+const blueTeam =
+    new Team(scene, "Blue FC", 0x0066ff);
 
-const redTeam = new Team(scene, "Red FC", 0xff3333);
-redTeam.createFormation();
+blueTeam.createFormation("left");
 
-// Flip Red Team
+const redTeam =
+    new Team(scene, "Red FC", 0xff3333);
 
-redTeam.players.forEach(player => {
-    player.mesh.position.x *= -1;
-});
+redTeam.createFormation("right");
 
-// Save home positions
-
-[...blueTeam.players, ...redTeam.players].forEach(player => {
-    player.home = player.mesh.position.clone();
-});
-
-// ====================
+// ==========================
 // AI
-// ====================
+// ==========================
 
-const blueAI = new AI(blueTeam, ball);
-const redAI = new AI(redTeam, ball);
+const blueAI =
+    new AI(blueTeam, ball);
 
-// ====================
+const redAI =
+    new AI(redTeam, ball);
+
+// ==========================
 // Controlled Player
-// ====================
+// ==========================
 
-const controlledPlayer = blueTeam.players[10];
+let controlledPlayer =
+    blueTeam.players[10];
 
-// ====================
-// Keyboard
-// ====================
+controlledPlayer.isControlled = true;
 
-const keys = {};
+// ==========================
+// Camera Controller
+// ==========================
 
-window.addEventListener("keydown", e => {
-    keys[e.key.toLowerCase()] = true;
-});
+const gameCamera =
+    new GameCamera(camera);
 
-window.addEventListener("keyup", e => {
-    keys[e.key.toLowerCase()] = false;
-});
+// ==========================
+// Input
+// ==========================
 
-// ====================
-// Player Controls
-// ====================
+const input =
+    new InputManager();
 
-function updatePlayer() {
+// ==========================
+// Match
+// ==========================
 
-    const direction = new THREE.Vector3();
+const match =
+    new Match(
+        ball,
+        blueTeam,
+        redTeam
+    );
 
-    if (keys["w"]) direction.z -= 1;
-    if (keys["s"]) direction.z += 1;
-    if (keys["a"]) direction.x -= 1;
-    if (keys["d"]) direction.x += 1;
+match.start();
 
-    if (direction.length() > 0) {
-        direction.normalize();
-        controlledPlayer.move(direction);
-    }
+// ==========================
+// Scoreboard
+// ==========================
 
-    // PASS
+const scoreboard =
+    new Scoreboard(match);
 
-    if (keys["e"]) {
+// ==========================
+// Animation Loop
+// ==========================
 
-        const teammate = blueTeam.players[7];
-
-        ballController.pass(teammate);
-
-        keys["e"] = false;
-    }
-
-    // SHOOT
-
-    if (keys[" "]) {
-
-        ballController.shoot(50);
-
-        keys[" "] = false;
-    }
-
-    // Camera
-
-    camera.position.x = controlledPlayer.mesh.position.x;
-    camera.position.z = controlledPlayer.mesh.position.z + 25;
-
-    camera.lookAt(controlledPlayer.mesh.position);
-}
-
-// ====================
-// Game Loop
-// ====================
+const clock =
+    new THREE.Clock();
 
 function animate() {
 
     requestAnimationFrame(animate);
 
-    updatePlayer();
+    const delta =
+        clock.getDelta() * 60;
 
-    blueAI.update();
-    redAI.update();
+    input.update(
+        controlledPlayer
+    );
 
-    blueTeam.update();
-    redTeam.update();
+    blueAI.update(delta);
+
+    redAI.update(delta);
+
+    blueTeam.update(delta);
+
+    redTeam.update(delta);
 
     ballController.update([
         ...blueTeam.players,
@@ -182,41 +170,42 @@ function animate() {
 
     ball.update();
 
-    renderer.render(scene, camera);
+    match.update(delta);
+
+    scoreboard.update();
+
+    gameCamera.update(
+        controlledPlayer,
+        ball
+    );
+
+    renderer.render(
+        scene,
+        camera
+    );
+
 }
 
 animate();
 
-// ====================
+// ==========================
 // Resize
-// ====================
+// ==========================
 
-window.addEventListener("resize", () => {
+window.addEventListener(
+    "resize",
+    () => {
 
-    camera.aspect =
-        window.innerWidth / window.innerHeight;
+        camera.aspect =
+            window.innerWidth /
+            window.innerHeight;
 
-    camera.updateProjectionMatrix();
+        camera.updateProjectionMatrix();
 
-    renderer.setSize(
-        window.innerWidth,
-        window.innerHeight
-    );
+        renderer.setSize(
+            window.innerWidth,
+            window.innerHeight
+        );
 
-});
-
-// ====================
-// Loading Screen
-// ====================
-
-const loading = document.getElementById("loadingScreen");
-
-if (loading) {
-
-    setTimeout(() => {
-
-        loading.style.display = "none";
-
-    }, 1000);
-
-}
+    }
+);
