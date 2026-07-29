@@ -6,7 +6,7 @@ export class BallController {
 
         this.ball = ball;
 
-        this.controlDistance = 1.1;
+        this.controlDistance = 0.75;
 
         this.passPower = 0.9;
 
