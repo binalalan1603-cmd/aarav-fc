@@ -3,37 +3,109 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.165/build/three.mod
 export class AI {
 
     constructor(team, ball) {
+
         this.team = team;
         this.ball = ball;
+
+        this.chaseDistance = 14;
+        this.returnSpeed = 0.035;
+        this.chaseSpeed = 0.06;
     }
 
-    update() {
+    update(delta = 1) {
 
-        this.team.players.forEach((player, index) => {
+        this.team.players.forEach(player => {
 
-            // Don't move the goalkeeper for now
-            if (index === 0) return;
+            // Controlled player is updated by main.js
+            if (player.isControlled) return;
 
-            let target;
+            const ballPos = this.ball.mesh.position;
+            const playerPos = player.mesh.position;
 
-            // Chase the ball if nearby
-            if (
-                player.mesh.position.distanceTo(this.ball.mesh.position) < 12
-            ) {
-                target = this.ball.mesh.position;
-            } else {
-                target = player.home || player.mesh.position;
+            const distance = playerPos.distanceTo(ballPos);
+
+            let target = new THREE.Vector3();
+
+            // Goalkeeper behaviour
+            if (player.isGoalkeeper) {
+
+                target.copy(player.home);
+
+                target.z += THREE.MathUtils.clamp(
+                    ballPos.z - player.home.z,
+                    -6,
+                    6
+                );
+
+                this.movePlayer(player, target, this.returnSpeed);
+
+                return;
             }
 
-            const direction = new THREE.Vector3()
-                .subVectors(target, player.mesh.position);
+            // Chase the ball if close
+            if (distance < this.chaseDistance) {
 
-            if (direction.length() > 0.1) {
-                direction.normalize();
-                player.move(direction);
+                target.copy(ballPos);
+
+                this.movePlayer(player, target, this.chaseSpeed);
+
+            } else {
+
+                // Return to home position
+                target.copy(player.home);
+
+                this.movePlayer(player, target, this.returnSpeed);
+
             }
 
         });
+
+    }
+
+    movePlayer(player, target, speed) {
+
+        const direction = new THREE.Vector3();
+
+        direction.subVectors(
+            target,
+            player.mesh.position
+        );
+
+        direction.y = 0;
+
+        if (direction.lengthSq() < 0.05)
+            return;
+
+        direction.normalize();
+
+        player.mesh.position.addScaledVector(
+            direction,
+            speed
+        );
+
+        // Rotate player
+
+        player.mesh.rotation.y =
+            Math.atan2(
+                direction.x,
+                direction.z
+            );
+
+        // Keep inside field
+
+        player.mesh.position.x =
+            THREE.MathUtils.clamp(
+                player.mesh.position.x,
+                -49,
+                49
+            );
+
+        player.mesh.position.z =
+            THREE.MathUtils.clamp(
+                player.mesh.position.z,
+                -30,
+                30
+            );
 
     }
 
