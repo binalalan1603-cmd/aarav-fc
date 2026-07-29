@@ -154,7 +154,36 @@ function animate() {
     input.update(
         controlledPlayer
     );
+// PASS
 
+if (input.passPressed() && ball.owner === controlledPlayer) {
+
+    const teammate = ballController.nearestTeammate(
+        blueTeam,
+        controlledPlayer
+    );
+
+    if (teammate) {
+
+        ballController.pass(teammate);
+
+    }
+
+}
+
+// SHOOT
+
+if (input.shootPressed() && ball.owner === controlledPlayer) {
+
+    const direction = new THREE.Vector3(
+        1,
+        0,
+        0
+    );
+
+    ballController.shoot(direction);
+
+}
     blueAI.update(delta);
 
     redAI.update(delta);
