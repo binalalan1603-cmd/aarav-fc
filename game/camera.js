@@ -6,8 +6,8 @@ export class GameCamera {
 
         this.camera = camera;
 
-        this.height = 24;
-        this.distance = 28;
+        this.height = 30;
+        this.distance = 36;
 
         this.target = new THREE.Vector3();
         this.current = new THREE.Vector3();
