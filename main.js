@@ -191,7 +191,20 @@ if (input.shootPressed() && ball.owner === controlledPlayer) {
     blueTeam.update(delta);
 
     redTeam.update(delta);
+const players = [
+    ...blueTeam.players,
+    ...redTeam.players
+];
 
+for(let i=0;i<players.length;i++){
+
+    for(let j=i+1;j<players.length;j++){
+
+        players[i].separate(players[j]);
+
+    }
+
+}
     ballController.update([
         ...blueTeam.players,
         ...redTeam.players
