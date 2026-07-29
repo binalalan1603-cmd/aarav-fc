@@ -61,7 +61,7 @@ export function createStadium(scene) {
 
     }
 
-    drawRectangle(100, 64);
+    drawRectangle(105, 68);
 
 
 
