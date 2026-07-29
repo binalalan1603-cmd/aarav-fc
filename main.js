@@ -116,7 +116,12 @@ const gameCamera =
 
 const input =
     new InputManager();
+let controlledIndex = 10;
 
+let controlledPlayer =
+    blueTeam.players[controlledIndex];
+
+controlledPlayer.isControlled = true;
 // ==========================
 // Match
 // ==========================
