@@ -7,7 +7,7 @@ export class AI {
         this.team = team;
         this.ball = ball;
 
-        this.chaseDistance = 14;
+        this.chaseDistance = 8;
         this.returnSpeed = 0.035;
         this.chaseSpeed = 0.06;
     }
