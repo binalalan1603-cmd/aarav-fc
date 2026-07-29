@@ -1,4 +1,144 @@
+aimport * as THREE from "https://cdn.jsdelivr.net/npm/three@0.165/build/three.module.js";
 import { Player } from "./player.js";
+
+export class Team {
+
+    constructor(scene, name, color) {
+
+        this.scene = scene;
+        this.name = name;
+        this.color = color;
+
+        this.players = [];
+
+        this.formation = [
+            [-45, 0],     // Goalkeeper
+
+            [-30, -18],   // Left Back
+            [-33, -6],    // Center Back
+            [-33, 6],     // Center Back
+            [-30, 18],    // Right Back
+
+            [-15, -12],   // Left Mid
+            [-18, 0],     // Center Mid
+            [-15, 12],    // Right Mid
+
+            [5, -14],     // Left Wing
+            [8, 0],       // Striker
+            [5, 14]       // Right Wing
+        ];
+
+    }
+
+    createFormation(side = "left") {
+
+        this.players = [];
+
+        this.formation.forEach((position, index) => {
+
+            const player = new Player(
+                this.scene,
+                `${this.name} ${index + 1}`,
+                this.color
+            );
+
+            let x = position[0];
+            let z = position[1];
+
+            if (side === "right") {
+
+                x *= -1;
+                z *= -1;
+
+            }
+
+            player.setPosition(
+                x,
+                1,
+                z
+            );
+
+            player.team = this;
+
+            player.number = index + 1;
+
+            player.isGoalkeeper = index === 0;
+
+            this.players.push(player);
+
+        });
+
+    }
+
+    resetFormation() {
+
+        this.players.forEach((player, index) => {
+
+            const pos = this.formation[index];
+
+            if (!pos) return;
+
+            let x = pos[0];
+            let z = pos[1];
+
+            if (this.name.toLowerCase().includes("red")) {
+
+                x *= -1;
+                z *= -1;
+
+            }
+
+            player.mesh.position.set(
+                x,
+                1,
+                z
+            );
+
+            player.home.set(
+                x,
+                1,
+                z
+            );
+
+        });
+
+    }
+
+    nearestPlayer(position) {
+
+        let nearest = null;
+
+        let distance = Infinity;
+
+        this.players.forEach(player => {
+
+            const d =
+                player.mesh.position.distanceTo(position);
+
+            if (d < distance) {
+
+                distance = d;
+                nearest = player;
+
+            }
+
+        });
+
+        return nearest;
+
+    }
+
+    update(delta = 1) {
+
+        this.players.forEach(player => {
+
+            player.update(delta);
+
+        });
+
+    }
+
+}import { Player } from "./player.js";
 
 
 export class Team {
